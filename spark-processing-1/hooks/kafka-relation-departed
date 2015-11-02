@@ -1,0 +1,16 @@
+#!/bin/sh
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+juju-log "$JUJU_REMOTE_UNIT departed"
+
+KAFKA_MEMBER_ADDRESS=`relation-get private-address $JUJU_REMOTE_UNIT`
+KAFKA_MEMBER_PORT`relation-get port $JUJU_REMOTE_UNIT`
+
+sed -i s/\,${KAFKA_MEMBER_ADDRESS}\:${KAFKA_MEMBER_PORT}// ${CONFIG_FILE}
+
+${HOME}/hooks/stop
+
+exit 0

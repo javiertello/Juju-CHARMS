@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+# XFACTOR=`date +%s | sha256sum | base64 | head -c 32 ; echo`
+# echo ${XFACTOR} | tee .current_topology
+
+juju-log "Application is ready. Wait for the rest and the bundle and use the analysis action"
+
+exit 0
+

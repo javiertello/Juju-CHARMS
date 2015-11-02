@@ -1,0 +1,10 @@
+# kafka
+
+description "kafka"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+limit nofile 20000 20000
+
+exec /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties

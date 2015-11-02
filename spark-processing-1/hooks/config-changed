@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+# Charm Variables
+KAFKA_MEMBER_ADDRESS=`grep KAFKA_MEMBER_ADDRESS ${CONFIG_FILE} | wc -l`
+
+juju-log "Validating configuration"
+if [ "${KAFKA_CLUSTER_ADDRESS}" = "1" ]
+then
+  juju-log "Missing relation. Exiting smoothly"
+  exit 0
+fi
+
+#juju-log "Compiling Spark Application..."
+#cd "${DEST_FOLDER}/${APPNAME}"
+#mvn package
+#cd -
+
+juju-log "Do not forget to add a relation with a Zookeeper"
+juju-log "Configuration done. Moving to next stage"
+
+${HOME}/hooks/start
+
+exit 0

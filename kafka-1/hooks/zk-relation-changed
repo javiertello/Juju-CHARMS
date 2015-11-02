@@ -1,0 +1,91 @@
+#!/usr/bin/python
+import subprocess
+import sys
+import time
+import os
+import json
+
+from utils import get_zookeeper_servers, update_kafka_config, svc_is_running
+
+port = subprocess.check_output(['relation-get', 'port'])
+if not port:
+    sys.exit(0)
+
+zks = get_zookeeper_servers()
+
+if not zks:
+    sys.exit(0)
+
+update_kafka_config('/opt/kafka/config/consumer.properties', zks)
+if update_kafka_config('/opt/kafka/config/server.properties', zks):
+    if not svc_is_running('kafka'):
+        subprocess.check_output(['open-port', '9092'])
+    subprocess.check_output(['service', 'kafka', 'restart'])
+
+# Wait for kafka started
+time.sleep(2)
+
+# Get topic from config
+topic = subprocess.check_output(['config-get', 'topic']).strip()
+
+# Get num of brokers
+svc, seq = os.environ['JUJU_UNIT_NAME'].split('/', 1)
+script_path = os.environ['CHARM_DIR']
+brokers = int(seq) + 1
+
+#zk_node=zks.split(',', 1)[0].split(':', 1)[0]
+#zk_port=zks.split(',', 1)[0].split(':', 1)[1]
+#proc1 = subprocess.Popen(['bash', script_path+'/hooks/getNumBrokers.sh', zk_node, zk_port], stdout=subprocess.PIPE) # Call shell script
+#brokers = int(proc1.stdout.read().strip())
+
+#with open('/opt/kafka/numUnits', 'r') as fileUnits:
+#        brokers = int(fileUnits.read().strip())
+
+#fileUnits.close()
+
+# Check if topic is already created
+cmd = "/opt/kafka/bin/kafka-topics.sh --describe --topic %s --zookeeper %s" % (topic, zks)
+p1 = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+p2 = subprocess.Popen(["grep", "-c", "Partition:"], stdin=p1.stdout, stdout=subprocess.PIPE)
+numPartitions = p2.stdout.read().strip()
+
+if numPartitions != '0': # Topic has been created
+    if int(numPartitions) < brokers: # Add partition and reassign
+        cmd = "/opt/kafka/bin/kafka-topics.sh --alter --topic %s --zookeeper %s --partitions %s" % (topic, zks,str(brokers))
+        subprocess.call(cmd.split()) # Add partition
+
+        # Obtain the broker id list
+        broker_list = ""
+        aux = brokers
+        while (aux > 0):
+            broker_list += str(aux-1)
+            broker_list += ","
+            aux = aux - 1
+
+        broker_list = broker_list[:-1] # Delete last ","
+
+        # Create topics-to-move.json
+        version = brokers # Increase in every execution
+
+        with open("/tmp/topics-to-move.json", "w",0) as outfile:
+            json.dump({"topics":[{"topic":topic}], "version":version}, outfile, indent=4)
+        
+        script_path = os.environ['CHARM_DIR']
+        subprocess.check_call(['sudo', 'bash', script_path+'/hooks/reassignation.sh', zks, broker_list]) # Call shell script
+
+
+
+        #cmd = "/opt/kafka/bin/kafka-reassign-partitions.sh --zookeeper %s --topics-to-move-json-file /tmp/topics-to-move.json --broker-list \"%s\" --generate" %(zks,broker_list)
+        #p1 = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE) # Generate reassign file
+        #sed = "sed -n -e '/Proposed partition reassignment configuration/,$p'"
+        #p2 = subprocess.Popen(sed.split(), stdin=p1.stdout, stdout=subprocess.PIPE)
+        #grep1 = "grep -v \"Proposed partition reassignment configuration\""
+        #p3 = subprocess.Popen(grep1.split(), stdin=p2.stdout, stdout=subprocess.PIPE)
+        #grep2 = "grep -v \"^$\""
+        #f = open('/tmp/expand-cluster-reassignment.json', 'w',0)
+        #p4 = subprocess.Popen(grep2.split(), stdin=p3.stdout, stdout=f)
+        #p4.communicate() # JSON reassignment file created
+        
+        # Execution of the reassignment
+        #cmd = "/opt/kafka/bin/kafka-reassign-partitions.sh --zookeeper %s --reassignment-json-file /tmp/expand-cluster-reassignment.json --execute" % zks
+        #subprocess.call(cmd.split())

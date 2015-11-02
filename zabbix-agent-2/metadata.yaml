@@ -1,0 +1,14 @@
+name: zabbix-superagent
+summary: network monitoring solution - agent
+maintainer: Samuel Cozannet <samuel.cozannet@canonical.com>
+description: |
+  Zabbix is the ultimate enterprise-level software designed for monitoring availability and performance of IT infrastructure components. Zabbix is open source and comes at no cost.
+categories: [ "applications" ]
+subordinate: true
+provides:
+  agent:
+    interface: zabbix-info
+requires:
+  juju-info:
+    interface: juju-info
+    scope: container

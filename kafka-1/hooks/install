@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -ex
+URL="http://mirror.cc.columbia.edu/pub/software/apache/kafka/0.8.1.1/kafka_2.9.2-0.8.1.1.tgz"
+FILE="kafka_2.9.2-0.8.1.1.tgz"
+
+apt-get install -y openjdk-7-jre-headless
+
+mkdir -p /opt/kafka
+#wget $URL
+#md5sum -c $CHARM_DIR/files/checksum
+tar -xzv -C /opt/kafka --strip-components=1 -f $CHARM_DIR/files/$FILE
+#rm $FILE
+
+cp $CHARM_DIR/files/kafka.upstart /etc/init/kafka.conf
+ln -s /opt/kafka/bin $CHARM_DIR/bin
+
+# Add host.name to server.properties and  to /etc/hosts (lxc case)
+hostname=$(cat /etc/hostname);
+
+if [[ $hostname == *"-lxc-"* ]]
+then
+	ip=$(ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}');
+	echo $ip" "$hostname >> /etc/hosts
+	printf "\n" >> /opt/kafka/config/server.properties
+	#echo "host.name="$hostname >> /opt/kafka/config/server.properties
+else
+	printf "\n" >> /opt/kafka/config/server.properties
+	#echo "host.name="$hostname".maas" >> /opt/kafka/config/server.properties
+fi
+
+#chmod 0755 $CHARM_DIR/hooks/reassignation.sh
+
+# Monitorizacion del ancho de banda
+cp $CHARM_DIR/hooks/anchoBanda.sh /home/ubuntu/anchoBanda.sh
+chmod 0755 /home/ubuntu/anchoBanda.sh
+
+# Elimino retencion del log y activo cleaning
+#printf "log.retention.minutes=1\n" >> /opt/kafka/config/server.properties
+#printf "log.retention.bytes=1\n" >> /opt/kafka/config/server.properties
+sed -i -e s/^log\.retention\.hours.*/log\.retention\.hours=1/ /opt/kafka/config/server.properties
+sed -i -e s/^log\.cleaner\.enable.*/log\.cleaner\.enable=true/ /opt/kafka/config/server.properties
+
+# Particiones por defecto por topic = 3
+sed -i -e s/^num\.partitions.*/num\.partitions=3/ /opt/kafka/config/server.properties

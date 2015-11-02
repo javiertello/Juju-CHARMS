@@ -1,0 +1,48 @@
+#!/bin/sh
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+${HOME}/hooks/stop
+
+juju-log "$JUJU_REMOTE_UNIT joined"
+
+KAFKA_BROKER_HOST=`relation-get private-address $JUJU_REMOTE_UNIT`
+KAFKA_BROKER_PORT=`relation-get port $JUJU_REMOTE_UNIT`
+ZOOKEEPER_HOSTS=`relation-get zookeepers $JUJU_REMOTE_UNIT`
+
+if [ -z "$KAFKA_BROKER_HOST"  ] ; then
+    exit 0
+fi
+if [ -z "$ZOOKEEPER_HOSTS"  ] ; then
+    exit 0
+fi
+
+BROKERS=""
+for BROKER in `relation-list` ; do  
+        juju-log "Adding $BROKER to configuration"
+        KAFKA_BROKER_HOST=`relation-get private-address ${BROKER}`
+        KAFKA_BROKER_PORT=`relation-get port ${BROKER}`
+        if [ "$KAFKA_BROKER_PORT" = "" ] ; then
+            KAFKA_BROKER_PORT="9092"
+        fi
+        if [ "$BROKERS" = "" ] ; then
+            BROKERS="${KAFKA_BROKER_HOST}:${KAFKA_BROKER_PORT}"
+        else
+            BROKERS="${BROKERS},${KAFKA_BROKER_HOST}:${KAFKA_BROKER_PORT}"
+        fi
+
+done
+
+sed -i s/^broker\.list.*/broker\.list\ \=\ "${BROKERS}"/ ${CONFIG_FILE}
+sed -i s/^zookeeper\.list.*/zookeeper\.list\ \=\ "${ZOOKEEPER_HOSTS}"/ ${CONFIG_FILE}
+
+iniciar=`cat /opt/kafka-smart-grid/iniciar`
+
+if [ $iniciar -eq "1" ]
+then
+	${HOME}/hooks/start
+fi
+
+exit 0 

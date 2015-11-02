@@ -1,0 +1,6 @@
+options:
+    server-host:
+        description: Zabbix server host address. the host name or IP address of the Zabbix server you want to connect to.
+        type: string
+        default: localhost
+

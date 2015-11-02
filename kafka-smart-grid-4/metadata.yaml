@@ -1,0 +1,13 @@
+name: kafka-smart-grid
+summary: Provides a Kafka Producer reading a smart-grid data set
+maintainer: Javier Tello <jtelloal@gmail.com>
+description: This charm will install a specific Kafka application dedicated to consuming a smart-grid data set and send all messages to a Kafka broker.
+tags:
+  - big_data
+subordinate: false
+provides:
+  kafka-producer:
+    interface: kafka-producer
+requires:
+  kafka:
+    interface: kafka

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Number of kafka units
+numUnits=`cat /opt/kafka/numUnits`
+
+# Update number of kafka units
+echo $(($numUnits - 1)) > /opt/kafka/numUnits
+
+# Next step would be to remove a partition from topic. But in Kafka 0.8.1 version it is not possible

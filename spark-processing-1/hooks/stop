@@ -1,0 +1,11 @@
+#!/bin/bash
+###
+#   !!!! This is a DUMMY CHARM !!!! It doesn't yet do anything....
+###
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+exit 0
+

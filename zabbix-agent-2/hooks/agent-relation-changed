@@ -1,0 +1,23 @@
+#!/bin/bash
+# Note: kept from previous charm by Nobuto MURATA <nobuto@ubuntu.com>
+
+set -ex
+
+ZABBIX_SERVER=`relation-get hostname`
+
+juju-log "Received: $ZABBIX_SERVER"
+
+if [ -z "$ZABBIX_SERVER" ]; then
+  echo "Zabbix server not defined yet. Waiting"
+  exit 0
+fi
+
+if [ ! -f .remote-zabbix ]; then
+    touch .remote-zabbix
+fi
+
+if ! grep -Fxq "$ZABBIX_SERVER" .remote-zabbix; then
+    echo "$ZABBIX_SERVER" >> .remote-zabbix
+fi
+
+hooks/config-changed

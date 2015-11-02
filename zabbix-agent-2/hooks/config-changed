@@ -1,0 +1,50 @@
+#!/bin/bash
+
+set -ex
+
+ZABBIX_SERVER=`config-get server-host`
+
+# Note: kept from previous charm by Nobuto MURATA <nobuto@ubuntu.com>
+if [ -f ".remote-zabbix" ]; then
+    for remote in $(cat .remote-zabbix); do
+        if [ ! -z "$remote" ]; then
+            if [ ! -z "$ZABBIX_SERVER" ]; then
+                ZABBIX_SERVER="$server,$remote"
+            else
+                ZABBIX_SERVER="$remote"
+            fi
+        fi
+    done
+fi
+
+if [ -z "$ZABBIX_SERVER" ]; then
+    juju-log "No servers defined yet"
+    exit 0
+fi
+
+# Setting default configuration
+sed -i.bak -e 's/^#\ EnableRemoteCommands=0/EnableRemoteCommands=1/g' \
+    -e 's/^#\ LogRemoteCommands=0/LogRemoteCommands=1/g' \
+    -e "s/^Server=.*/Server="${ZABBIX_SERVER}"/g" \
+    -e "s/^ServerActive=.*/ServerActive="${ZABBIX_SERVER}"/g" \
+    -e '/Hostname=Zabbix\ server/d' \
+    -e 's/^#\ AllowRoot=0/AllowRoot=1/g' \
+    -e 's/^#\ UserParameter=/UserParameter=system\.anchobanda,\/home\/ubuntu\/anchoBanda\.sh/g' \
+    /etc/zabbix/zabbix_agentd.conf
+
+# Adding metadata containing Juju node information
+METADATA=`ls /var/lib/juju/agents/ | grep -v "machine\|zabbix-agent" | tr '\n' ' '`
+sed -i.bak.1 -e "s/^#\ HostMetadata=/HostMetadata=${METADATA}/g" \
+    /etc/zabbix/zabbix_agentd.conf
+
+# Copying data
+cp -f data/user-parameter/*.conf /etc/zabbix/zabbix_agentd.d/
+
+# Copying binaries
+mkdir -p /opt/zabbix/externalscripts
+cp -f data/bin/* /opt/zabbix/externalscripts/
+chown -R zabbix:zabbix /opt/zabbix/externalscripts
+chmod +x /opt/zabbix/externalscripts/*
+
+hooks/start
+

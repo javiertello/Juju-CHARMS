@@ -1,0 +1,28 @@
+#!/bin/sh
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+juju-log "$JUJU_REMOTE_UNIT joined"
+
+NODEJS_APP_HOST="`relation-get private-address $JUJU_REMOTE_UNIT`"
+NODEJS_APP_PORT="`relation-get port $JUJU_REMOTE_UNIT`"
+
+if [ -z "$NODEJS_APP_HOST" ] ; then
+    juju-log "Remote unit not ready or private IP address unavailable. Exiting gracefully..."
+    exit 0
+fi
+
+if [ -z "$NODEJS_APP_PORT" ] ; then
+    juju-log "Remote unit port not set. Assuming HTTP on port 8000"
+    NODEJS_APP_PORT="8000"
+fi
+
+NODEJS_APP_URL="http\:\/\/"${NODEJS_APP_HOST}"\:"${NODEJS_APP_PORT}"\/${NODEJS_APP_URI}"
+
+sed -i s/^rts\.spark\.webserv.*/rts\.spark\.webserv\:\ "${NODEJS_APP_URL}"/ ${CONFIG_FILE}
+
+${HOME}/hooks/config-changed
+
+exit 0

@@ -1,0 +1,58 @@
+#!/bin/bash
+################################################################################
+#  
+# Script to install Zabbix Agent on a Ubuntu 14.04 vanilla system
+#
+################################################################################
+
+# Configuring default versions
+VERSION="2.2"
+DISTRIBUTION="ubuntu"
+DIST="trusty"
+APT_KEY="D13D58E479EA5ED4"
+APT_SRV="keys.gnupg.net"
+MYSQL_PASS="ubuntu"
+
+### Pre requisite
+# Using default repository for latest Zabbix binaries
+echo "deb http://repo.zabbixzone.com/zabbix/${VERSION}/${DISTRIBUTION}/ ${DIST} main contrib non-free" | tee /etc/apt/sources.list.d/zabbix.list
+apt-key adv --keyserver ${APT_SRV} --recv-keys ${APT_KEY}
+
+# Adding the multiverse repos
+echo "deb http://us.archive.ubuntu.com/ubuntu/ ${DIST} multiverse" | tee -a /etc/apt/sources.list
+echo "deb http://us.archive.ubuntu.com/ubuntu/ ${DIST}-updates multiverse" | tee -a /etc/apt/sources.list
+
+# Updating local repos
+apt-get update -qq
+
+# CVS Systems
+apt-get install -y -qq git bzr
+# dev tools
+apt-get install -y -qq python-pip
+# OpenIPMI
+apt-get install -y -qq openipmi 
+# CURL
+apt-get install -y -qq curl 
+# SNMP
+apt-get install -y -qq snmp snmptt snmpd
+apt-get install -y -qq snmp-mibs-downloader 
+# Networking & Stuff
+apt-get install -y -qq  fping wakeonlan ntp bc nmap
+# AMT Terminal
+apt-get install -y -qq  amtterm
+# Stuff
+apt-get install -y -qq expect
+# Networking
+apt-get install -y -qq tshark 
+groupadd wireshark
+usermod -a -G wireshark $USERNAME
+chgrp wireshark /usr/bin/dumpcap
+chmod 750 /usr/bin/dumpcap
+setcap cap_net_raw,cap_net_admin=eip /usr/bin/dumpcap
+# Various APIs
+## ElasticSearch
+pip install pyes
+
+### Installing Zabbix
+apt-get install -y -qq zabbix-agent
+

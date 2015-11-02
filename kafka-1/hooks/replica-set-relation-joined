@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Number of kafka units
+numUnits=`relation-list | grep -o "/" | wc -l`
+numUnits=$(($numUnits + 1))
+
+# Save it into a file
+echo $numUnits > /opt/kafka/numUnits

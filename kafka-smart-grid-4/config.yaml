@@ -1,0 +1,6 @@
+options:
+    num-brokers:
+        description: The number of kafka brokers you want to connect to.
+        type: int
+        default: 3
+

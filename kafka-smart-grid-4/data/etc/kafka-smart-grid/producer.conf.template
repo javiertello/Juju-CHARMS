@@ -1,0 +1,8 @@
+# Kafka conf
+broker.list = KAFKA_BROKER_HOST:KAFKA_BROKER_PORT
+zookeeper.list = ZOOKEEPER_HOST:ZOOKEEPER_PORT
+serializer.class = kafka.serializer.StringEncoder
+request.required.acks = 0
+kafka.topic = "smart.grid"
+producer.type = async
+batch.size = 200

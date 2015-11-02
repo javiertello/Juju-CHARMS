@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -ex
+
+remote=`relation-get private-address`
+
+if [ ! -z "$remote" ]; then
+    sed -i "s/^${remote}$//g" .remote-zabbix
+fi
+
+hooks/config-changed

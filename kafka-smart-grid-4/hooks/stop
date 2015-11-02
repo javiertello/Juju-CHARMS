@@ -1,0 +1,12 @@
+#!/bin/bash
+set -ex 
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+#actuales=`cat /opt/kafka-smart-grid/numUnits`
+#actuales=$(($actuales - 1))
+#echo $actuales > /opt/kafka-smart-grid/numUnits
+
+service ${APPNAME} stop
+
+exit 0

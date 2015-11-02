@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+SPARKBIN="/usr/lib/spark/bin/spark-submit"
+
+juju-log "Submitting the Spark Application to the Cluster"
+${SPARKBIN} --class examples.streaming.DirectKafkaWordCount --master local[4] "${DEST_FOLDER}/CuentaEventos.jar" ${KAFKA_BROKERS} smart.grid &
+exit 0

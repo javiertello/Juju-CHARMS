@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -ex 
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+if [ `grep "KAFKA_BROKER_HOST" ${CONFIG_FILE}` ] 
+then 
+ 	juju-log "No relation with a broker yet. Exiting"
+ 	exit 0 
+else 
+    juju-log "Restarting or Starting service..."
+        service ${APPNAME} stop
+        sleep 3
+        service ${APPNAME} start
+fi
+
+exit 0 

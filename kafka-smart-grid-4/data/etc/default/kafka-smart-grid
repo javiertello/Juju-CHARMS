@@ -1,0 +1,8 @@
+# Set options
+DAEMON_ARGS="/etc/kafka-smart-grid/producer.conf"
+
+# Start on boot
+START=1
+
+
+

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+sed -i s/^rts\.spark\.khosts.*/rts\.spark\.khosts\:\ KAFKA_MEMBER_ADDRESS\:KAFKA_MEMBER_PORT ${CONFIG_FILE}
+
+${HOME}/hooks/stop
+
+exit 0

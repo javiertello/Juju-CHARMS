@@ -1,0 +1,55 @@
+#!/bin/bash
+
+set -ex 
+
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+juju-log "Starting Installation"
+juju-log "Installing prerequisites"
+apt-get install -y -qq openjdk-7-jdk gradle
+
+juju-log "Copying latest charm files"
+([ ! -d ${DEST_FOLDER} ] && mkdir -p ${DEST_FOLDER}) || rm -rf ${DEST_FOLDER}/*
+
+cp -r data/* ${DEST_FOLDER}/
+
+juju-log "Installing Configuration file"
+ln -sf ${DEST_FOLDER}/etc/${APPNAME} /etc/${APPNAME}
+
+juju-log "Installing init script"
+ln -sf ${DEST_FOLDER}/etc/init.d/${APPNAME} /etc/init.d/${APPNAME}
+chmod 0755 /etc/init.d/${APPNAME}
+chown root:root /etc/init.d/${APPNAME}
+update-rc.d ${APPNAME} defaults
+
+juju-log "Installing default settings"
+ln -sf ${DEST_FOLDER}/etc/default/${APPNAME} /etc/default/${APPNAME}
+
+juju-log "Compiling Application"
+cd ${DEST_FOLDER}
+chmod u+x gradlew
+./gradlew installApp
+cd -
+
+#juju-log "Downloading dataset"
+#cd ${DEST_FOLDER}/data
+#wget ${SERVER_URL}${DATA_SET}.gz
+
+#juju-log "Uncompressing data set"
+#gzip -d ${DATA_SET}.gz
+#cd -
+
+juju-log "Copying default configuration file"
+cp ${CONFIG_FILE}.template ${CONFIG_FILE}
+
+# Monitorizacion del ancho de banda
+cp $CHARM_DIR/hooks/anchoBanda.sh /home/ubuntu/anchoBanda.sh
+chmod 0755 /home/ubuntu/anchoBanda.sh
+
+juju-log "Installation finished"
+
+echo "0" > /opt/kafka-smart-grid/numUnits
+echo "0" > /opt/kafka-smart-grid/iniciar
+
+exit 0

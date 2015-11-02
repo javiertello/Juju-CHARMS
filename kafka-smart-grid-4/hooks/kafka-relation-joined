@@ -1,0 +1,30 @@
+#!/bin/sh
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+# No inicia kafka hasta que en la configuracion aparecen todos
+# los brokers de la relacion
+brokers=`config-get num-brokers`
+actuales=`cat /opt/kafka-smart-grid/numUnits`
+actuales=$(($actuales + 1))
+echo $actuales > /opt/kafka-smart-grid/numUnits
+
+# Si son iguales, configuracion estabilizada e inicia
+if [ $actuales -ge $brokers ]
+then
+	echo "1" > /opt/kafka-smart-grid/iniciar
+fi
+
+# Si hay mas de los que indica la configuracion, significa que se ha aniadido un
+# broker nuevo. Modificarlo en la configuracion e iniciar
+#if [ $actuales -gt $brokers ]
+#then
+#	config-set num-brokers=$actuales
+#	${HOME}/hooks/start
+#fi
+
+juju-log "$JUJU_REMOTE_UNIT joined"
+
+exit 0

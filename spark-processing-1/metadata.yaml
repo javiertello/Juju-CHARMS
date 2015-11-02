@@ -1,0 +1,16 @@
+name: spark-processing
+summary: Ejecuta la app de procesado en el cluster de spark
+maintainer: Javier Tello <jtelloal@gmail.com>
+description: Charm que ejecuta la app de procesado en el cluster de spark
+tags:
+  - big_data
+subordinate: true
+provides:
+  spark-app:
+    interface: spark-app
+requires:
+  master:
+    interface: spark
+    scope: container
+  kafka:
+    interface: kafka

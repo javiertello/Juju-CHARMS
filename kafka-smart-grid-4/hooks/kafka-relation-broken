@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+${HOME}/hooks/stop
+
+sed -i s/^broker\.list.*/broker\.list\ \=\ KAFKA_BROKER_HOST\:KAFKA_BROKER_PORT/ ${CONFIG_FILE}
+
+exit 0

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+juju-log "upgrading charm..."
+juju-log "Stopping service"
+hooks/stop
+
+juju-log "Reinstalling from scratch"
+hooks/install
+
+juju-log "Applying configuration"
+hooks/config-changed
+
+juju-log "Starting service"
+hooks/start
+
+exit 0

@@ -1,0 +1,5 @@
+options:
+    topic:
+        description: Kafka topic to which publish/subscribe
+        type: string
+        default: smart.grid

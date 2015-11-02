@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+juju-log "$JUJU_REMOTE_UNIT departed"
+
+NODEJS_APP_URL="NODEJS_APP_URL\:NODEJS_APP_PORT\/NODEJS_APP_URI"
+
+sed -i s/^rts\.spark\.webserv.*/rts\.spark\.webserv\:\ "${NODEJS_APP_URL}"/ ${CONFIG_FILE}
+
+${HOME}/hooks/stop
+
+exit 0

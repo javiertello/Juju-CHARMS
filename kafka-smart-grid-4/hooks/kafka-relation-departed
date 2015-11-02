@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -ex
+HOME=$PWD
+. ${HOME}/hooks/common.sh
+
+${HOME}/hooks/stop
+
+juju-log "$JUJU_REMOTE_UNIT departed"
+
+KAFKA_BROKER_HOST=`relation-get private-address $JUJU_REMOTE_UNIT`
+KAFKA_BROKER_PORT=`relation-get port $JUJU_REMOTE_UNIT`
+
+sed -i s/${KAFKA_BROKER_HOST}\:${KAFKA_BROKER_PORT}// ${CONFIG_FILE}
+sed -i s/\,\,/\,/ ${CONFIG_FILE}
+
+# Remove kafka unit
+actuales=`cat /opt/kafka-smart-grid/numUnits`
+actuales=$(($actuales - 1))
+echo $actuales > /opt/kafka-smart-grid/numUnits
+
+exit 0 
